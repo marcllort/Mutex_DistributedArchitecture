@@ -1,3 +1,5 @@
+package Lamport;
+
 public class DirectClock {
 
     private int id;
