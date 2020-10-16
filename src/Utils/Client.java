@@ -3,7 +3,7 @@ package Utils;
 import java.io.IOException;
 import java.net.*;
 
-public class Network {
+public class Client {
 
     private static int MAX_LEN = 100;
 
@@ -12,7 +12,7 @@ public class Network {
     private InetAddress host;
     private int ports[];
 
-    public Network(int my_sender_port, int ports[]) {
+    public Client(int my_sender_port, int ports[]) {
         try {
             this.myPort = my_sender_port;
             this.socket = new DatagramSocket(my_sender_port);
@@ -46,34 +46,25 @@ public class Network {
         }
     }
 
-    public DatagramPacket receiveMessage() {
+    public DatagramPacket receiveMessage() throws IOException {
         byte[] receiverBuffer = new byte[MAX_LEN];
         DatagramPacket packetReceiver = new DatagramPacket(receiverBuffer, MAX_LEN);
-
-        try {
-            this.socket.receive(packetReceiver);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        this.socket.receive(packetReceiver);
         return packetReceiver;
     }
 
-    public void sendTokenMessage(int port) {
+    public void sendTokenMessage(int port) throws IOException {
         String message = "TOKEN";
         byte[] senderBuffer = message.getBytes();
         DatagramPacket packetSender = new DatagramPacket(senderBuffer, senderBuffer.length, host, port);
-        try {
-            this.socket.send(packetSender);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.socket.send(packetSender);
     }
 
-    public int getPosition(int port) {
+    public int getId(int port) {
         for (int i = 0; i < this.ports.length; i++) {
             if (port == this.ports[i]) return i;
         }
+        System.err.println("ERROR: Couldn't find port");
         return -1;
     }
 

@@ -1,20 +1,17 @@
 package Lamport;
 
 import Utils.Constants;
-import Utils.Network;
-
-import java.io.IOException;
+import Utils.Client;
 
 public class MainLamport {
     public static void main(String args[]) {
 
-        // Creo els 3 LW de Lamport
         for (int i = 0; i < 3; i++) {
-            Network network = new Network(
+            Client client = new Client(
                     Constants.PORTS_LAMPORT[i],
                     Constants.PORTS_LAMPORT
             );
-            LamportMutex lamportMutex = new LamportMutex(i, network);
+            LamportMutex lamportMutex = new LamportMutex(i, client);
             lamportMutex.start();
         }
 

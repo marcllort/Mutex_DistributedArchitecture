@@ -1,35 +1,39 @@
 package Lamport;
 
-import Utils.Network;
+import Utils.Client;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 
 
 public class LamportMutex extends Thread {
     private DirectClock v;
     private int[] q;
-    private int id = 0;
-    private Network network;
+    private int id;
+    private Client client;
 
-    public LamportMutex(int id, Network network) {
+    public LamportMutex(int id, Client client) {
         this.id = id;
-        this.network = network;
-        this.v = new DirectClock(network.getPorts().length, this.id);
-        this.q = new int[network.getPorts().length];
-        for (int j = 0; j < network.getPorts().length; j++) this.q[j] = Integer.MAX_VALUE;
+        this.client = client;
+        this.v = new DirectClock(client.getPorts().length, this.id);
+        this.q = new int[client.getPorts().length];
+        for (int j = 0; j < client.getPorts().length; j++) this.q[j] = Integer.MAX_VALUE;
     }
 
     public void myWait() {
-        DatagramPacket datagramPacket = this.network.receiveMessage();
+        try {
+            DatagramPacket datagramPacket = this.client.receiveMessage();
+            if (datagramPacket != null) {
+                String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
+                String[] parts = message.split("&");
 
-        if (datagramPacket != null) {
-            String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
-            String[] parts = message.split("&");
+                int portSender = Integer.valueOf(parts[0]);
+                int timeStamp = Integer.valueOf(parts[2]);
 
-            int portSender = Integer.valueOf(parts[0]);
-            int timeStamp = Integer.valueOf(parts[2]);
-
-            this.handleMsg(timeStamp, portSender, parts[1]);
+                this.handleMsg(timeStamp, portSender, parts[1]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -37,17 +41,17 @@ public class LamportMutex extends Thread {
         v.tick();
         q[this.id] = v.getValue(this.id);
 
-        network.broadcastMessage("request", q[id]);
+        client.broadcastMessage("request", q[id]);
         while (!okayCS()) myWait();
     }
 
     public synchronized void releaseCS() {
         q[id] = Integer.MAX_VALUE;
-        network.broadcastMessage("release", v.getValue(id));
+        client.broadcastMessage("release", v.getValue(id));
     }
 
     boolean okayCS() {
-        for (int j = 0; j < this.network.getPorts().length; j++) {
+        for (int j = 0; j < this.client.getPorts().length; j++) {
             if (isGreater(q[id], id, q[j], j)) return false;
             if (isGreater(q[id], id, v.getValue(j), j)) return false;
         }
@@ -60,41 +64,42 @@ public class LamportMutex extends Thread {
     }
 
     public synchronized void handleMsg(int timeStamp, int src, String tag) {
-        int id = network.getPosition(src);
-
-        v.receiveAction(id, timeStamp);
+        v.receiveAction(client.getId(src), timeStamp);
 
         if (tag.equals("request")) {
             this.q[id] = timeStamp;
-            network.sendMessage(src, "ack", v.getValue(this.id));
+            client.sendMessage(src, "ack", v.getValue(this.id));
         } else if (tag.equals("release")) this.q[id] = Integer.MAX_VALUE;
 
     }
 
-
     public void run() {
-        while (true) {
-            String message = "";
-            DatagramPacket datagramPacket;
+        try {
+            while (true) {
+                String message = "";
+                DatagramPacket datagramPacket;
 
-            while (!(message.equals("TOKEN"))) {
-                datagramPacket = this.network.receiveMessage();
-                message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
-            }
-
-            requestCS();
-
-            for (int i = 0; i < 10; i++) {
-                System.out.println("Soc el procés lightweight A" + (this.id + 1));
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                while (!(message.equals("TOKEN"))) {
+                    datagramPacket = this.client.receiveMessage();
+                    message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
                 }
-            }
 
-            releaseCS();
-            this.network.sendTokenMessage(6665);
+                requestCS();
+
+                for (int i = 0; i < 10; i++) {
+                    System.out.println("Soc el procés lightweight A" + (this.id + 1));
+                    try {
+                        sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                releaseCS();
+                this.client.sendTokenMessage(6665);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
