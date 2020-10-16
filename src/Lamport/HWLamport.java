@@ -1,5 +1,7 @@
 package Lamport;
 
+import constants.Constants;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -14,7 +16,6 @@ public class HWLamport{
         //creem el socket per establir la connexió amb l'altre heavy weight
         DatagramSocket mySocket = new DatagramSocket(my_port);
         Random r = new Random();
-        int[] arrayPorts = new int[]{6667, 6668, 6669};
         int result;
         /*Lamport lamport;
 
@@ -40,21 +41,21 @@ public class HWLamport{
             mySocket.receive(packetReciver);
 
             //System.out.println("HW1 tiene el token");
-            result = r.nextInt(arrayPorts.length);
+            result = r.nextInt(Constants.PORTS_LAMPORT.length);
             System.out.println("RANDOM " + result);
             //Enviem el packet
-            for (int i = result; i < arrayPorts.length; i++) {
+            for (int i = result; i < Constants.PORTS_LAMPORT.length; i++) {
                 System.out.println("ENVIO");
-                packetSender.setPort(arrayPorts[i]);
+                packetSender.setPort(Constants.PORTS_LAMPORT[i]);
                 mySocket.send(packetSender);
             }
 
             for (int i = 0; i < result; i++) {
-                packetSender.setPort(arrayPorts[i]);
+                packetSender.setPort(Constants.PORTS_LAMPORT[i]);
                 mySocket.send(packetSender);
             }
 
-            for (int i = 0; i < arrayPorts.length; i++) {
+            for (int i = 0; i < Constants.PORTS_LAMPORT.length; i++) {
                 mySocket.receive(packetReciver);
             }
 
