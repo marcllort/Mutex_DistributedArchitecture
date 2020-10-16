@@ -24,7 +24,7 @@ public class Client {
     }
 
     public void sendMessage(int port, String message, int clk) {
-        String messageBuffer = this.myPort + "&" + message + "&" + clk;
+        String messageBuffer = message + "-" + clk;
         byte[] senderBuffer = messageBuffer.getBytes();
 
         DatagramPacket datagramPacket = new DatagramPacket(senderBuffer, senderBuffer.length);

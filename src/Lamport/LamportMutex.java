@@ -25,12 +25,8 @@ public class LamportMutex extends Thread {
             DatagramPacket datagramPacket = this.client.receiveMessage();
             if (datagramPacket != null) {
                 String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
-                String[] parts = message.split("&");
-
-                int portSender = Integer.valueOf(parts[0]);
-                int timeStamp = Integer.valueOf(parts[2]);
-
-                this.handleMsg(timeStamp, portSender, parts[1]);
+                String[] parts = message.split("-");
+                this.handleMsg(Integer.valueOf(parts[1]), datagramPacket.getPort(), parts[0]);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,7 +60,8 @@ public class LamportMutex extends Thread {
     }
 
     public synchronized void handleMsg(int timeStamp, int src, String tag) {
-        v.receiveAction(client.getId(src), timeStamp);
+        int id = client.getId(src);
+        v.receiveAction(id, timeStamp);
 
         if (tag.equals("request")) {
             this.q[id] = timeStamp;
@@ -96,7 +93,7 @@ public class LamportMutex extends Thread {
                 }
 
                 releaseCS();
-                this.client.sendTokenMessage(6665);
+                this.client.sendTokenMessage(5555);
             }
         } catch (IOException e) {
             e.printStackTrace();
