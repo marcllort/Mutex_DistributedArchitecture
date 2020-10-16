@@ -1,7 +1,7 @@
 package Lamport;
 
-import Utils.Constants;
 import Utils.Client;
+import Utils.Constants;
 import Utils.HeavyWeightProcess;
 
 public class MainLamport {

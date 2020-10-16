@@ -1,17 +1,13 @@
 package Utils;
 
-import Utils.Constants;
-
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
-import java.util.Random;
+
+import static Utils.Constants.MAX_LENGTH;
 
 public class HeavyWeightProcess {
 
-    private static int MAX_LENGTH = 100;
 
     public static void startHeavyWeigth(int port, int dest_port, int[] ports) {
 

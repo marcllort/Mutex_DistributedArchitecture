@@ -1,12 +1,11 @@
 package RA;
 
-import Lamport.LamportMutex;
 import Utils.Client;
 import Utils.Constants;
 import Utils.HeavyWeightProcess;
 
 public class MainRA {
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         for (int i = 0; i < Constants.PORTS_RA.length; i++) {
             Client client = new Client(

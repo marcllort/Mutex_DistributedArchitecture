@@ -6,6 +6,8 @@ import Utils.Constants;
 import java.io.IOException;
 import java.net.DatagramPacket;
 
+import static Utils.Constants.PROCESS_MSG_A;
+
 
 public class LamportMutex extends Thread {
     private DirectClock v;
@@ -85,7 +87,7 @@ public class LamportMutex extends Thread {
                 requestCS();
 
                 for (int i = 0; i < 10; i++) {
-                    System.out.println("Soc el procés lightweight A" + (this.id + 1));
+                    System.out.println(PROCESS_MSG_A + (this.id + 1));
                     try {
                         sleep(1000);
                     } catch (InterruptedException e) {
