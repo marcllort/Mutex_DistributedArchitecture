@@ -54,7 +54,7 @@ public class Client {
     }
 
     public void sendTokenMessage(int port) throws IOException {
-        String message = "TOKEN";
+        String message = Constants.TOKEN_MSG;
         byte[] senderBuffer = message.getBytes();
         DatagramPacket packetSender = new DatagramPacket(senderBuffer, senderBuffer.length, host, port);
         this.socket.send(packetSender);

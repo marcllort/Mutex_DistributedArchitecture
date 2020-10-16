@@ -1,3 +1,5 @@
+package RA;
+
 public class LamportClock {
     private int c;
 

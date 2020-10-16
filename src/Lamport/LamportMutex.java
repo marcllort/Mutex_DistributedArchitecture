@@ -1,6 +1,7 @@
 package Lamport;
 
 import Utils.Client;
+import Utils.Constants;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -37,13 +38,13 @@ public class LamportMutex extends Thread {
         v.tick();
         q[this.id] = v.getValue(this.id);
 
-        client.broadcastMessage("request", q[id]);
+        client.broadcastMessage(Constants.REQUEST_MSG, q[id]);
         while (!okayCS()) myWait();
     }
 
     public synchronized void releaseCS() {
         q[id] = Integer.MAX_VALUE;
-        client.broadcastMessage("release", v.getValue(id));
+        client.broadcastMessage(Constants.RELEASE_MSG, v.getValue(id));
     }
 
     boolean okayCS() {
@@ -63,10 +64,10 @@ public class LamportMutex extends Thread {
         int id = client.getId(src);
         v.receiveAction(id, timeStamp);
 
-        if (tag.equals("request")) {
+        if (tag.equals(Constants.REQUEST_MSG)) {
             this.q[id] = timeStamp;
-            client.sendMessage(src, "ack", v.getValue(this.id));
-        } else if (tag.equals("release")) this.q[id] = Integer.MAX_VALUE;
+            client.sendMessage(src, Constants.ACK_MSG, v.getValue(this.id));
+        } else if (tag.equals(Constants.RELEASE_MSG)) this.q[id] = Integer.MAX_VALUE;
 
     }
 
@@ -76,7 +77,7 @@ public class LamportMutex extends Thread {
                 String message = "";
                 DatagramPacket datagramPacket;
 
-                while (!(message.equals("TOKEN"))) {
+                while (!(message.equals(Constants.TOKEN_MSG))) {
                     datagramPacket = this.client.receiveMessage();
                     message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
                 }
@@ -93,7 +94,6 @@ public class LamportMutex extends Thread {
                 }
 
                 releaseCS();
-                this.client.sendTokenMessage(5555);
             }
         } catch (IOException e) {
             e.printStackTrace();
