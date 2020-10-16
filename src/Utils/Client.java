@@ -5,16 +5,16 @@ import java.net.*;
 
 public class Client {
 
-    private static int MAX_LEN = 100;
+    private static int MAX_LENGTH = 100;
 
-    private int myPort;
+    private int port;
     private DatagramSocket socket;
     private InetAddress host;
     private int ports[];
 
     public Client(int my_sender_port, int ports[]) {
         try {
-            this.myPort = my_sender_port;
+            this.port = my_sender_port;
             this.socket = new DatagramSocket(my_sender_port);
             host = InetAddress.getLocalHost();
             this.ports = ports;
@@ -34,21 +34,21 @@ public class Client {
         try {
             this.socket.send(datagramPacket);
         } catch (IOException e) {
-            System.err.println("ERROR: Couldn't send the message");
+            System.err.println("Couldn't send the message");
         }
     }
 
     public void broadcastMessage(String message, int clk) {
         for (int port : this.ports) {
-            if (port != this.myPort) {
+            if (port != this.port) {
                 this.sendMessage(port, message, clk);
             }
         }
     }
 
     public DatagramPacket receiveMessage() throws IOException {
-        byte[] receiverBuffer = new byte[MAX_LEN];
-        DatagramPacket packetReceiver = new DatagramPacket(receiverBuffer, MAX_LEN);
+        byte[] receiverBuffer = new byte[MAX_LENGTH];
+        DatagramPacket packetReceiver = new DatagramPacket(receiverBuffer, MAX_LENGTH);
         this.socket.receive(packetReceiver);
         return packetReceiver;
     }
@@ -64,7 +64,7 @@ public class Client {
         for (int i = 0; i < this.ports.length; i++) {
             if (port == this.ports[i]) return i;
         }
-        System.err.println("ERROR: Couldn't find port");
+        System.err.println("Couldn't find port");
         return -1;
     }
 
