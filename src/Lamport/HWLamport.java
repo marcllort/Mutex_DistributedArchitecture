@@ -1,71 +1,56 @@
 package Lamport;
 
-import constants.Constants;
+import Utils.Constants;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.Random;
 
-public class HWLamport{
+public class HWLamport {
 
-    final int MAX_LEN = 100;
+    private static int MAX_LENGTH = 100;
 
-    public void startHeavyWeigth(int my_port, int reciver_port) throws IOException {
-        //creem el socket per establir la connexió amb l'altre heavy weight
-        DatagramSocket mySocket = new DatagramSocket(my_port);
-        Random r = new Random();
-        int result;
-        /*Lamport lamport;
+    public static void startHeavyWeigth(int port, int dest_port) {
 
-        for (int i = 0; i < arrayPorts.length; i++) {
-            lamport = new Lamport(i, new Network(arrayPorts[i], arrayPorts));
-            lamport.start();
-        }*/
-        //El missatge que enviarem a l'altre node el passem a bytes
-        String message = "TOKEN";
-        byte[] senderBuffer = message.getBytes();
-        byte[] reciverBuffer = new byte[MAX_LEN];
+        try {
+            DatagramSocket socket = new DatagramSocket(port);
+            Random r = new Random();
+            String message = "TOKEN";
 
-        //Agafem la direcció com a localhost
-        InetAddress reciverHost = InetAddress.getLocalHost();
+            DatagramPacket packetSender = new DatagramPacket(message.getBytes(), message.getBytes().length,
+                    InetAddress.getLocalHost(), dest_port);
+            DatagramPacket packetReceiver = new DatagramPacket(new byte[MAX_LENGTH], MAX_LENGTH);
 
-        //Creem el packet a enviar pel socket
-        DatagramPacket packetSender = new DatagramPacket(senderBuffer, senderBuffer.length, reciverHost, reciver_port);
-        DatagramPacket packetReciver = new DatagramPacket(reciverBuffer, MAX_LEN);
+            while (true) {
+                socket.receive(packetReceiver);
+                int result = r.nextInt(Constants.PORTS_LAMPORT.length);
+                System.out.println("RANDOM " + result);
 
-        while (true) {
+                for (int i = result; i < Constants.PORTS_LAMPORT.length; i++) {
+                    System.out.println("ENVIO");
+                    packetSender.setPort(Constants.PORTS_LAMPORT[i]);
+                    socket.send(packetSender);
+                }
 
+                for (int i = 0; i < result; i++) {
+                    packetSender.setPort(Constants.PORTS_LAMPORT[i]);
+                    socket.send(packetSender);
+                }
 
-            mySocket.receive(packetReciver);
+                for (int i = 0; i < Constants.PORTS_LAMPORT.length; i++) {
+                    socket.receive(packetReceiver);
+                }
 
-            //System.out.println("HW1 tiene el token");
-            result = r.nextInt(Constants.PORTS_LAMPORT.length);
-            System.out.println("RANDOM " + result);
-            //Enviem el packet
-            for (int i = result; i < Constants.PORTS_LAMPORT.length; i++) {
-                System.out.println("ENVIO");
-                packetSender.setPort(Constants.PORTS_LAMPORT[i]);
-                mySocket.send(packetSender);
+                packetSender.setPort(dest_port);
+                socket.send(packetSender);
             }
-
-            for (int i = 0; i < result; i++) {
-                packetSender.setPort(Constants.PORTS_LAMPORT[i]);
-                mySocket.send(packetSender);
-            }
-
-            for (int i = 0; i < Constants.PORTS_LAMPORT.length; i++) {
-                mySocket.receive(packetReciver);
-            }
-
-            //Enviem al HW2
-            packetSender.setPort(reciver_port);
-            mySocket.send(packetSender);
-
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
-
 
 }

@@ -5,11 +5,12 @@ public class DirectClock {
     private int id;
     private int[] clock;
 
-
     public DirectClock(int numProc, int id) {
         this.id = id;
         this.clock = new int[numProc];
-        for (int i = 0; i < numProc; i++) clock[i] = 0;
+        for (int i = 0; i < numProc; i++) {
+            clock[i] = 0;
+        }
         clock[id] = 1;
     }
 
