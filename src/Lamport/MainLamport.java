@@ -6,7 +6,7 @@ import Utils.HeavyWeightProcess;
 
 public class MainLamport {
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         for (int i = 0; i < Constants.PORTS_LAMPORT.length; i++) {
             Client client = new Client(Constants.PORTS_LAMPORT[i], Constants.PORTS_LAMPORT);

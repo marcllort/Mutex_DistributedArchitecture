@@ -89,7 +89,7 @@ public class LamportMutex extends Thread {
                 }
 
                 releaseCS();
-                client.sendTokenMessage(Constants.PORT_HW_LAMPORT);
+                client.sendToken(Constants.PORT_HW_LAMPORT);
             }
         } catch (Exception e) {
             e.printStackTrace();

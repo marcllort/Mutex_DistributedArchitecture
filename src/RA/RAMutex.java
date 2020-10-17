@@ -87,7 +87,7 @@ public class RAMutex extends Thread {
                 }
 
                 releaseCS();
-                client.sendTokenMessage(Constants.PORT_HW_RA);
+                client.sendToken(Constants.PORT_HW_RA);
             }
         } catch (Exception e) {
             e.printStackTrace();

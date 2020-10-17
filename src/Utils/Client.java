@@ -5,73 +5,66 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
+import static Utils.Constants.MAX_LENGTH;
+
 public class Client {
 
-    private static int MAX_LENGTH = 100;
-
-    private int port;
+    private int ownPort;
+    private int ports[];
     private DatagramSocket socket;
     private InetAddress host;
-    private int ports[];
 
-    public Client(int my_sender_port, int ports[]) {
+    public Client(int ownPort, int ports[]) {
         try {
-            this.port = my_sender_port;
-            this.socket = new DatagramSocket(my_sender_port);
-            host = InetAddress.getLocalHost();
+            this.ownPort = ownPort;
             this.ports = ports;
+            this.socket = new DatagramSocket(ownPort);
+            this.host = InetAddress.getLocalHost();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    public void sendMessage(int port, String message, int clk) {
-        String messageBuffer = message + "-" + clk;
-        byte[] senderBuffer = messageBuffer.getBytes();
-
-        DatagramPacket datagramPacket = new DatagramPacket(senderBuffer, senderBuffer.length);
-        datagramPacket.setAddress(host);
-        datagramPacket.setPort(port);
-
-        try {
-            this.socket.send(datagramPacket);
-        } catch (IOException e) {
-            System.err.println("Couldn't send the message");
-        }
-    }
-
-    public void broadcastMessage(String message, int clk) {
-        for (int port : this.ports) {
-            if (port != this.port) {
-                this.sendMessage(port, message, clk);
-            }
         }
     }
 
     public DatagramPacket receiveMessage() throws IOException {
         byte[] receiverBuffer = new byte[MAX_LENGTH];
         DatagramPacket packetReceiver = new DatagramPacket(receiverBuffer, MAX_LENGTH);
-        this.socket.receive(packetReceiver);
+        socket.receive(packetReceiver);
         return packetReceiver;
     }
 
-    public void sendTokenMessage(int port) throws IOException {
+    public void sendMessage(int port, String message, int c) {
+        try {
+            String messageBuffer = message + "-" + c;
+            socket.send(new DatagramPacket(messageBuffer.getBytes(),
+                    messageBuffer.getBytes().length, host, port));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendToken(int port) throws IOException {
         String message = Constants.TOKEN_MSG;
-        byte[] senderBuffer = message.getBytes();
-        DatagramPacket packetSender = new DatagramPacket(senderBuffer, senderBuffer.length, host, port);
-        this.socket.send(packetSender);
+        DatagramPacket packetSender = new DatagramPacket(message.getBytes(), message.getBytes().length, host, port);
+        socket.send(packetSender);
+    }
+
+    public void broadcastMessage(String message, int c) {
+        for (int port : ports) {
+            if (port != ownPort) {
+                sendMessage(port, message, c);
+            }
+        }
     }
 
     public int getId(int port) {
-        for (int i = 0; i < this.ports.length; i++) {
-            if (port == this.ports[i]) return i;
+        for (int i = 0; i < ports.length; i++) {
+            if (port == ports[i]) return i;
         }
-        System.err.println("Couldn't find port");
         return -1;
     }
 
     public int[] getPorts() {
-        return ports;
+        return this.ports;
     }
 
 }
