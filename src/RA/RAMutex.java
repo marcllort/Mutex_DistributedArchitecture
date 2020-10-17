@@ -57,11 +57,11 @@ public class RAMutex extends Thread {
     }
 
     public synchronized void handleMsg(int timeStamp, int src, String tag) {
-        int timestamp = client.getId(src);
+        int id = client.getId(src);
         c.receiveAction(timeStamp);
 
         if (tag.equals(Constants.REQUEST_MSG)) {
-            if ((myts == Integer.MAX_VALUE) || (timeStamp < myts) || ((timeStamp == myts) && (timestamp < id))) {
+            if ((myts == Integer.MAX_VALUE) || (timeStamp < myts) || ((timeStamp == myts) && (id < this.id))) {
                 client.sendMessage(src, "okay", c.getValue());
             } else pendingQ.add(src);
         } else if (tag.equals("okay")) {
