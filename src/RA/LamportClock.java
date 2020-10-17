@@ -1,30 +1,23 @@
 package RA;
 
 public class LamportClock {
-    private int c;
 
-    public LamportClock(int c) {
-        this.c = c;
+    private int tics;
+
+    public LamportClock() {
+        this.tics = 0;
     }
 
-    public int getC() {
-        return c;
-    }
-
-    public void setC(int c) {
-        this.c = c;
+    public int getValue() {
+        return tics;
     }
 
     public void tick() {
-        c = c + 1;
+        tics++;
     }
 
-    public void sendAction() {
-        tick();
-    }
-
-    public void receiveAction(int src, int sentValue) {
-        c = Math.max(c, sentValue) + 1;
+    public void receiveAction(int receivedValue) {
+        tics = Math.max(tics, receivedValue) + 1;
     }
 
 }

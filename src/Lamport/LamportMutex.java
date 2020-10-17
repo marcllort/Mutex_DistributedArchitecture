@@ -25,11 +25,11 @@ public class LamportMutex extends Thread {
 
     public void myWait() {
         try {
-            DatagramPacket datagramPacket = this.client.receiveMessage();
+            DatagramPacket datagramPacket = client.receiveMessage();
             if (datagramPacket != null) {
                 String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
                 String[] parts = message.split("-");
-                this.handleMsg(Integer.valueOf(parts[1]), datagramPacket.getPort(), parts[0]);
+                handleMsg(Integer.parseInt(parts[1]), datagramPacket.getPort(), parts[0]);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -38,7 +38,7 @@ public class LamportMutex extends Thread {
 
     public synchronized void requestCS() {
         v.tick();
-        q[this.id] = v.getValue(this.id);
+        q[id] = v.getValue(id);
 
         client.broadcastMessage(Constants.REQUEST_MSG, q[id]);
         while (!okayCS()) myWait();
@@ -50,7 +50,7 @@ public class LamportMutex extends Thread {
     }
 
     boolean okayCS() {
-        for (int j = 0; j < this.client.getPorts().length; j++) {
+        for (int j = 0; j < client.getPorts().length; j++) {
             if (isGreater(q[id], id, q[j], j)) return false;
             if (isGreater(q[id], id, v.getValue(j), j)) return false;
         }
@@ -67,9 +67,9 @@ public class LamportMutex extends Thread {
         v.receiveAction(id, timeStamp);
 
         if (tag.equals(Constants.REQUEST_MSG)) {
-            this.q[id] = timeStamp;
-            client.sendMessage(src, Constants.ACK_MSG, v.getValue(this.id));
-        } else if (tag.equals(Constants.RELEASE_MSG)) this.q[id] = Integer.MAX_VALUE;
+            q[id] = timeStamp;
+            client.sendMessage(src, Constants.ACK_MSG, v.getValue(id));
+        } else if (tag.equals(Constants.RELEASE_MSG)) q[id] = Integer.MAX_VALUE;
 
     }
 
@@ -80,14 +80,14 @@ public class LamportMutex extends Thread {
                 DatagramPacket datagramPacket;
 
                 while (!(message.equals(Constants.TOKEN_MSG))) {
-                    datagramPacket = this.client.receiveMessage();
+                    datagramPacket = client.receiveMessage();
                     message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
                 }
 
                 requestCS();
 
                 for (int i = 0; i < 10; i++) {
-                    System.out.println(PROCESS_MSG_A + (this.id + 1));
+                    System.out.println(PROCESS_MSG_A + (id + 1));
                     try {
                         sleep(1000);
                     } catch (InterruptedException e) {
@@ -96,7 +96,7 @@ public class LamportMutex extends Thread {
                 }
 
                 releaseCS();
-                this.client.sendTokenMessage(Constants.PORT_HW_LAMPORT);
+                client.sendTokenMessage(Constants.PORT_HW_LAMPORT);
 
             }
         } catch (IOException e) {

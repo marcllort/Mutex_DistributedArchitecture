@@ -8,9 +8,7 @@ import static Utils.Constants.MAX_LENGTH;
 
 public class HeavyWeightProcess {
 
-
-    public static void startHeavyWeigth(int port, int dest_port, int[] ports) {
-
+    public static void startHeavyWeight(int port, int dest_port, int[] ports) {
         try {
             DatagramSocket socket = new DatagramSocket(port);
             String message = Constants.TOKEN_MSG;
@@ -35,7 +33,6 @@ public class HeavyWeightProcess {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
 }

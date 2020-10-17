@@ -14,32 +14,12 @@ public class DirectClock {
         clock[id] = 1;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int[] getClock() {
-        return clock;
-    }
-
-    public void setClock(int[] clock) {
-        this.clock = clock;
-    }
-
     public int getValue(int i) {
         return this.clock[i];
     }
 
     public void tick() {
         clock[id]++;
-    }
-
-    public void sendAction() {
-        tick();
     }
 
     public void receiveAction(int sender, int sentValue) {

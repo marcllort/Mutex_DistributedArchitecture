@@ -13,10 +13,9 @@ public class Constants {
     public static final String RELEASE_MSG = "RELEASE";
     public static final String ACK_MSG = "ACK";
 
-    public static final String PROCESS_MSG_A = "Soc el procés lightweight A";
-    public static final String PROCESS_MSG_B = "Soc el procés lightweight B";
+    public static final String PROCESS_MSG_A = "Sóc el procés lightweight A";
+    public static final String PROCESS_MSG_B = "Sóc el procés lightweight B";
 
     public static int MAX_LENGTH = 100;
-
 
 }
