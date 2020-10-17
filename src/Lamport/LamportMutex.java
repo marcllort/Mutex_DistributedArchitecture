@@ -3,7 +3,6 @@ package Lamport;
 import Utils.Client;
 import Utils.Constants;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 
 import static Utils.Constants.PROCESS_MSG_A;
@@ -29,7 +28,7 @@ public class LamportMutex extends Thread {
             if (datagramPacket != null) {
                 String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
                 String[] parts = message.split("-");
-                handleMsg(Integer.parseInt(parts[1]), datagramPacket.getPort(), parts[0]);
+                handleMsg(Integer.valueOf(parts[1]), datagramPacket.getPort(), parts[0]);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,29 +76,22 @@ public class LamportMutex extends Thread {
         try {
             while (true) {
                 String message = "";
-                DatagramPacket datagramPacket;
+                DatagramPacket packet;
 
                 while (!(message.equals(Constants.TOKEN_MSG))) {
-                    datagramPacket = client.receiveMessage();
-                    message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
+                    packet = client.receiveMessage();
+                    message = new String(packet.getData(), 0, packet.getLength());
                 }
-
                 requestCS();
-
                 for (int i = 0; i < 10; i++) {
                     System.out.println(PROCESS_MSG_A + (id + 1));
-                    try {
-                        sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    sleep(1000);
                 }
 
                 releaseCS();
                 client.sendTokenMessage(Constants.PORT_HW_LAMPORT);
-
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -16,13 +16,13 @@ public class RAMutex extends Thread {
     private int id;
     private Client client;
     private LamportClock c;
-    private LinkedList pendingQ;
+    private LinkedList<Integer> pendingQ;
 
     public RAMutex(int id, Client client) {
         this.id = id;
         this.client = client;
         this.myts = Integer.MAX_VALUE;
-        this.pendingQ = new LinkedList();
+        this.pendingQ = new LinkedList<Integer>();
         this.c = new LamportClock();
     }
 
@@ -42,83 +42,58 @@ public class RAMutex extends Thread {
     public synchronized void requestCS() {
         c.tick();
         myts = c.getValue();
+
         client.broadcastMessage(Constants.REQUEST_MSG, myts);
         numOkay = 0;
-        while (numOkay < client.getPorts().length - 1) {
-            myWait();
-        }
+        while (numOkay < client.getPorts().length - 1) myWait();
     }
 
     public synchronized void releaseCS() {
         myts = Integer.MAX_VALUE;
         while (!pendingQ.isEmpty()) {
-            int src = (int) pendingQ.removeFirst();
-            client.sendMessage(src, "okay", c.getValue());
+            int pid = pendingQ.removeFirst();
+            client.sendMessage(pid, "okay", c.getValue());
         }
     }
 
     public synchronized void handleMsg(int timeStamp, int src, String tag) {
-
-        int idSrc = client.getId(src);
+        int timestamp = client.getId(src);
         c.receiveAction(timeStamp);
 
         if (tag.equals(Constants.REQUEST_MSG)) {
-            if ((myts == Integer.MAX_VALUE)
-                    || (timeStamp < myts)
-                    || ((timeStamp == myts) && (idSrc < id))) {
-
+            if ((myts == Integer.MAX_VALUE) || (timeStamp < myts) || ((timeStamp == myts) && (timestamp < id))) {
                 client.sendMessage(src, "okay", c.getValue());
-            } else {
-                pendingQ.add(src);
-            }
+            } else pendingQ.add(src);
         } else if (tag.equals("okay")) {
             numOkay++;
-            if (numOkay == client.getPorts().length - 1) {
-                //no se que hacer aquí
-            }
+            if (numOkay == client.getPorts().length - 1) notify();
         }
     }
-
 
     public void run() {
-        String message = "";
-        DatagramPacket datagramPacket = null;
+        try {
+            while (true) {
+                String message = "";
+                DatagramPacket packet;
 
-        while (true) {
-
-            while (!(message.equals(Constants.TOKEN_MSG))) {
-                try {
-                    datagramPacket = client.receiveMessage();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                while (!(message.equals(Constants.TOKEN_MSG))) {
+                    packet = client.receiveMessage();
+                    message = new String(packet.getData(), 0, packet.getLength());
                 }
-                message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
-
-            }
-
-            requestCS();
-
-            for (int i = 0; i < 10; i++) {
-
-                System.out.println(PROCESS_MSG_B + (id + 1));
-
-                try {
+                requestCS();
+                for (int i = 0; i < 10; i++) {
+                    System.out.println(PROCESS_MSG_B + (id + 1));
                     sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
 
-            }
-
-            releaseCS();
-            try {
+                releaseCS();
                 client.sendTokenMessage(Constants.PORT_HW_RA);
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-            message = "";
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+
 }
 
 
