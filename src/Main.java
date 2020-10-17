@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            DatagramSocket mySocket = new DatagramSocket(Constants.PORT_HW_LAMPORT);
+            DatagramSocket mySocket = new DatagramSocket(5550);
             String message = Constants.TOKEN_MSG;
 
             DatagramPacket packetSender = new DatagramPacket(message.getBytes(), message.getBytes().length,

@@ -26,7 +26,7 @@ public class RAMutex extends Thread {
         this.myId = myId;
     }
 
-    public void start() {
+    public void run() {
         String message = "";
         DatagramPacket datagramPacket = null;
 
@@ -58,7 +58,7 @@ public class RAMutex extends Thread {
 
             this.releaseCS();
             try {
-                this.network.sendTokenMessage(6666);
+                this.network.sendTokenMessage(Constants.PORT_HW_RA);
             } catch (IOException e) {
                 e.printStackTrace();
             }
