@@ -6,17 +6,18 @@ import Utils.Constants;
 import java.net.DatagramPacket;
 
 import static Utils.Constants.PROCESS_MSG_A;
+import static java.lang.Thread.sleep;
 
 
-public class LamportMutex extends Thread {
+public class LamportMutex {
     private DirectClock v;
     private int[] q;
     private int id;
     private Client client;
 
-    public LamportMutex(int id, Client client) {
+    public LamportMutex(int id) {
         this.id = id;
-        this.client = client;
+        this.client =   new Client(Constants.PORTS_LAMPORT[id], Constants.PORTS_LAMPORT);
         this.v = new DirectClock(client.getPorts().length, this.id);
         this.q = new int[client.getPorts().length];
         for (int j = 0; j < client.getPorts().length; j++) this.q[j] = Integer.MAX_VALUE;
@@ -87,6 +88,7 @@ public class LamportMutex extends Thread {
                     System.out.println(PROCESS_MSG_A + (id + 1));
                     sleep(1000);
                 }
+                System.out.println("------------------------------");
 
                 releaseCS();
                 client.sendToken(Constants.PORT_HW_LAMPORT);
@@ -95,5 +97,4 @@ public class LamportMutex extends Thread {
             e.printStackTrace();
         }
     }
-
 }

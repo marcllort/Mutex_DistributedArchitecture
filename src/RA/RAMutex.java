@@ -18,9 +18,9 @@ public class RAMutex extends Thread {
     private LamportClock c;
     private LinkedList<Integer> pendingQ;
 
-    public RAMutex(int id, Client client) {
+    public RAMutex(int id) {
         this.id = id;
-        this.client = client;
+        this.client = new Client(Constants.PORTS_RA[id], Constants.PORTS_RA);
         this.myts = Integer.MAX_VALUE;
         this.pendingQ = new LinkedList<Integer>();
         this.c = new LamportClock();
@@ -85,6 +85,8 @@ public class RAMutex extends Thread {
                     System.out.println(PROCESS_MSG_B + (id + 1));
                     sleep(1000);
                 }
+                System.out.println("------------------------------");
+
 
                 releaseCS();
                 client.sendToken(Constants.PORT_HW_RA);
