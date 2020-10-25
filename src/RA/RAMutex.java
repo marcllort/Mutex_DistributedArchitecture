@@ -12,7 +12,7 @@ import static Utils.Constants.*;
 
 public class RAMutex extends Thread {
     private int numOkay;
-    private int myts;
+    private int mytimestamp;
     private int id;
     private Client client;
     private LamportClock c;
@@ -21,16 +21,16 @@ public class RAMutex extends Thread {
     public RAMutex(int id) {
         this.id = id;
         this.client = new Client(Constants.PORTS_RA[id], Constants.PORTS_RA);
-        this.myts = Integer.MAX_VALUE;
+        this.mytimestamp = Integer.MAX_VALUE;
         this.pendingQ = new LinkedList<>();
         this.c = new LamportClock();
     }
 
     public synchronized void requestCS() {
         c.tick();
-        myts = c.getValue();
+        mytimestamp = c.getValue();
 
-        client.broadcastMessage(Constants.REQUEST_MSG, myts);
+        client.broadcastMessage(Constants.REQUEST_MSG, mytimestamp);
         numOkay = 0;
         while (numOkay < client.getPorts().length - 1) myWait();
     }
@@ -50,12 +50,14 @@ public class RAMutex extends Thread {
 
     public synchronized void handleMsg(int timeStamp, int src, String tag) {
         int id = client.getId(src);
-        c.receiveAction(timeStamp);
+        c.receiveAction(timeStamp);                                                                                     // Update clock
 
         if (tag.equals(Constants.REQUEST_MSG)) {
-            if ((myts == Integer.MAX_VALUE) || (timeStamp < myts) || ((timeStamp == myts) && (id < this.id))) {
+            if ((mytimestamp == Integer.MAX_VALUE) || (timeStamp < mytimestamp)
+                    || ((timeStamp == mytimestamp) && (id < this.id))) {                                                // If this process already finished, or timestamp is smaller, give Okay
                 client.sendMessage(src, OKAY_MSG, c.getValue());
-            } else pendingQ.add(src);
+            } else
+                pendingQ.add(src);                                                                                      // Save in pending queue
         } else if (tag.equals(OKAY_MSG)) {
             numOkay++;
             if (numOkay == client.getPorts().length - 1) notify();
@@ -63,8 +65,9 @@ public class RAMutex extends Thread {
     }
 
     public synchronized void releaseCS() {
-        myts = Integer.MAX_VALUE;
-        while (!pendingQ.isEmpty()) {
+        mytimestamp = Integer.MAX_VALUE;
+
+        while (!pendingQ.isEmpty()) {                                                                                   // Once my critical part finished, start sending Okay to the queue
             int pid = pendingQ.removeFirst();
             client.sendMessage(pid, OKAY_MSG, c.getValue());
         }
