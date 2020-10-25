@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.util.LinkedList;
 
-import static Utils.Constants.PROCESS_MSG_B;
+import static Utils.Constants.*;
 
 
 public class RAMutex extends Thread {
@@ -22,21 +22,8 @@ public class RAMutex extends Thread {
         this.id = id;
         this.client = new Client(Constants.PORTS_RA[id], Constants.PORTS_RA);
         this.myts = Integer.MAX_VALUE;
-        this.pendingQ = new LinkedList<Integer>();
+        this.pendingQ = new LinkedList<>();
         this.c = new LamportClock();
-    }
-
-    public void myWait() {
-        try {
-            DatagramPacket datagramPacket = this.client.receiveMessage();
-            if (datagramPacket != null) {
-                String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
-                String[] parts = message.split("-");
-                handleMsg(Integer.parseInt(parts[1]), datagramPacket.getPort(), parts[0]);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public synchronized void requestCS() {
@@ -48,11 +35,16 @@ public class RAMutex extends Thread {
         while (numOkay < client.getPorts().length - 1) myWait();
     }
 
-    public synchronized void releaseCS() {
-        myts = Integer.MAX_VALUE;
-        while (!pendingQ.isEmpty()) {
-            int pid = pendingQ.removeFirst();
-            client.sendMessage(pid, "okay", c.getValue());
+    public void myWait() {
+        try {
+            DatagramPacket datagramPacket = this.client.receiveMessage();
+            if (datagramPacket != null) {
+                String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
+                String[] parts = message.split(MSG_SEPARATOR);
+                handleMsg(Integer.parseInt(parts[1]), datagramPacket.getPort(), parts[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -62,11 +54,19 @@ public class RAMutex extends Thread {
 
         if (tag.equals(Constants.REQUEST_MSG)) {
             if ((myts == Integer.MAX_VALUE) || (timeStamp < myts) || ((timeStamp == myts) && (id < this.id))) {
-                client.sendMessage(src, "okay", c.getValue());
+                client.sendMessage(src, OKAY_MSG, c.getValue());
             } else pendingQ.add(src);
-        } else if (tag.equals("okay")) {
+        } else if (tag.equals(OKAY_MSG)) {
             numOkay++;
             if (numOkay == client.getPorts().length - 1) notify();
+        }
+    }
+
+    public synchronized void releaseCS() {
+        myts = Integer.MAX_VALUE;
+        while (!pendingQ.isEmpty()) {
+            int pid = pendingQ.removeFirst();
+            client.sendMessage(pid, OKAY_MSG, c.getValue());
         }
     }
 
@@ -86,7 +86,6 @@ public class RAMutex extends Thread {
                     sleep(1000);
                 }
                 System.out.println("------------------------------");
-
 
                 releaseCS();
                 client.sendToken(Constants.PORT_HW_RA);

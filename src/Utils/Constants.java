@@ -12,6 +12,9 @@ public class Constants {
     public static final String REQUEST_MSG = "REQUEST";
     public static final String RELEASE_MSG = "RELEASE";
     public static final String ACK_MSG = "ACK";
+    public static final String OKAY_MSG = "OKAY";
+
+    public static final String MSG_SEPARATOR = "-";
 
     public static final String PROCESS_MSG_A = "Sóc el procés lightweight A";
     public static final String PROCESS_MSG_B = "Sóc el procés lightweight B";

@@ -32,9 +32,9 @@ public class Client {
         return packetReceiver;
     }
 
-    public void sendMessage(int port, String message, int c) {
+    public void sendMessage(int port, String message, int clock) {
         try {
-            String messageBuffer = message + "-" + c;
+            String messageBuffer = message + "-" + clock;
             socket.send(new DatagramPacket(messageBuffer.getBytes(),
                     messageBuffer.getBytes().length, host, port));
         } catch (IOException e) {
@@ -48,10 +48,10 @@ public class Client {
         socket.send(packetSender);
     }
 
-    public void broadcastMessage(String message, int c) {
+    public void broadcastMessage(String message, int clock) {
         for (int port : ports) {
             if (port != ownPort) {
-                sendMessage(port, message, c);
+                sendMessage(port, message, clock);
             }
         }
     }

@@ -5,51 +5,34 @@ import Utils.Constants;
 
 import java.net.DatagramPacket;
 
+import static Utils.Constants.MSG_SEPARATOR;
 import static Utils.Constants.PROCESS_MSG_A;
 import static java.lang.Thread.sleep;
 
 
 public class LamportMutex {
-    private DirectClock v;
-    private int[] q;
-    private int id;
-    private Client client;
+    private DirectClock v;              // DirectClock
+    private int[] q;                    // Request queue, stores each LW timestamp
+    private int id;                     // LW Process Id
+    private Client client;              // Network helper class
 
     public LamportMutex(int id) {
         this.id = id;
-        this.client =   new Client(Constants.PORTS_LAMPORT[id], Constants.PORTS_LAMPORT);
+        this.client = new Client(Constants.PORTS_LAMPORT[id], Constants.PORTS_LAMPORT);
         this.v = new DirectClock(client.getPorts().length, this.id);
         this.q = new int[client.getPorts().length];
         for (int j = 0; j < client.getPorts().length; j++) this.q[j] = Integer.MAX_VALUE;
     }
 
-    public void myWait() {
-        try {
-            DatagramPacket datagramPacket = client.receiveMessage();
-            if (datagramPacket != null) {
-                String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
-                String[] parts = message.split("-");
-                handleMsg(Integer.valueOf(parts[1]), datagramPacket.getPort(), parts[0]);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public synchronized void requestCS() {
-        v.tick();
-        q[id] = v.getValue(id);
+        v.tick();                                                                           // Increase/update timestamp
+        q[id] = v.getValue(id);                                                             // Update value in the request list
 
         client.broadcastMessage(Constants.REQUEST_MSG, q[id]);
         while (!okayCS()) myWait();
     }
 
-    public synchronized void releaseCS() {
-        q[id] = Integer.MAX_VALUE;
-        client.broadcastMessage(Constants.RELEASE_MSG, v.getValue(id));
-    }
-
-    boolean okayCS() {
+    boolean okayCS() {                                                                      // Order deciding logic
         for (int j = 0; j < client.getPorts().length; j++) {
             if (isGreater(q[id], id, q[j], j)) return false;
             if (isGreater(q[id], id, v.getValue(j), j)) return false;
@@ -62,9 +45,22 @@ public class LamportMutex {
         return ((entry1 > entry2) || ((entry1 == entry2) && (pid1 > pid2)));
     }
 
+    public void myWait() {
+        try {
+            DatagramPacket datagramPacket = client.receiveMessage();
+            if (datagramPacket != null) {
+                String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
+                String[] parts = message.split(MSG_SEPARATOR);
+                handleMsg(Integer.valueOf(parts[1]), datagramPacket.getPort(), parts[0]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public synchronized void handleMsg(int timeStamp, int src, String tag) {
         int id = client.getId(src);
-        v.receiveAction(id, timeStamp);
+        v.receiveAction(id, timeStamp);                                                     // Update Clock for the process, and your own clock
 
         if (tag.equals(Constants.REQUEST_MSG)) {
             q[id] = timeStamp;
@@ -73,13 +69,18 @@ public class LamportMutex {
 
     }
 
+    public synchronized void releaseCS() {
+        q[id] = Integer.MAX_VALUE;
+        client.broadcastMessage(Constants.RELEASE_MSG, v.getValue(id));
+    }
+
     public void run() {
         try {
             while (true) {
                 String message = "";
                 DatagramPacket packet;
 
-                while (!(message.equals(Constants.TOKEN_MSG))) {
+                while (isNotToken(message)) {
                     packet = client.receiveMessage();
                     message = new String(packet.getData(), 0, packet.getLength());
                 }
@@ -96,5 +97,9 @@ public class LamportMutex {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isNotToken(String message) {
+        return !(message.equals(Constants.TOKEN_MSG));
     }
 }

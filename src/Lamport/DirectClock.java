@@ -2,8 +2,8 @@ package Lamport;
 
 public class DirectClock {
 
-    private int id;
-    private int[] clock;
+    private int id;                             // Process Id
+    private int[] clock;                        // Clock from other processes
 
     public DirectClock(int numProc, int id) {
         this.id = id;
