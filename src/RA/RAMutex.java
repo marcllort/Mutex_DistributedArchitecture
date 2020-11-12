@@ -79,7 +79,7 @@ public class RAMutex extends Thread {
                 String message = "";
                 DatagramPacket packet;
 
-                while (!(message.equals(Constants.TOKEN_MSG))) {
+                while (isNotToken(message)) {                                                                           // Receive the Token that decides which algorithm is currently running
                     packet = client.receiveMessage();
                     message = new String(packet.getData(), 0, packet.getLength());
                 }
@@ -96,6 +96,10 @@ public class RAMutex extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isNotToken(String message) {
+        return !(message.equals(Constants.TOKEN_MSG));
     }
 
 }

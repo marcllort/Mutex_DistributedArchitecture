@@ -80,7 +80,7 @@ public class LamportMutex {
                 String message = "";
                 DatagramPacket packet;
 
-                while (isNotToken(message)) {
+                while (isNotToken(message)) {                                                                           // Receive the Token that decides which algorithm is currently running
                     packet = client.receiveMessage();
                     message = new String(packet.getData(), 0, packet.getLength());
                 }
