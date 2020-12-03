@@ -22,7 +22,7 @@ public class Main {
 
             // Sends Token to Lamport HW, to start the process
             DatagramPacket packet = new DatagramPacket(message.getBytes(), message.getBytes().length,
-                    InetAddress.getLocalHost(), Constants.PORT_HW_LAMPORT);
+                    InetAddress.getLocalHost(), Constants.PORT_HW_RA);
             socket.send(packet);
         } catch (Exception e) {
             e.printStackTrace();

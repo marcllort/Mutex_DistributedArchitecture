@@ -8,6 +8,10 @@ public class LamportClock {
         this.tics = 0;
     }
 
+    public LamportClock(int tics) {
+        this.tics = tics;
+    }
+
     public int getValue() {
         return tics;
     }

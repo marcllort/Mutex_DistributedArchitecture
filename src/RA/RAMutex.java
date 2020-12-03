@@ -25,6 +25,13 @@ public class RAMutex extends Thread {
         this.pendingQ = new LinkedList<>();
         this.c = new LamportClock();
     }
+    public RAMutex(int id, int clock) {
+        this.id = id;
+        this.client = new Client(Constants.PORTS_RA[id], Constants.PORTS_RA);
+        this.mytimestamp = Integer.MAX_VALUE;
+        this.pendingQ = new LinkedList<>();
+        this.c = new LamportClock(clock);
+    }
 
     public synchronized void requestCS() {
         c.tick();
