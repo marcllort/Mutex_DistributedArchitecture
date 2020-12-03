@@ -11,7 +11,10 @@ public class DirectClock {
         for (int i = 0; i < numProc; i++) {
             clock[i] = 0;
         }
-        clock[id] = 1;
+        clock[0] = 2;
+        clock[1] = 0;
+        clock[2] = 1;
+        //clock[id] = 1;
     }
 
     public int getValue(int i) {

@@ -5,8 +5,7 @@ import Utils.Constants;
 
 import java.net.DatagramPacket;
 
-import static Utils.Constants.MSG_SEPARATOR;
-import static Utils.Constants.PROCESS_MSG_A;
+import static Utils.Constants.*;
 import static java.lang.Thread.sleep;
 
 
@@ -15,6 +14,7 @@ public class LamportMutex {
     private int[] q;                    // Request queue, stores each LW timestamp
     private int id;                     // LW Process Id
     private Client client;              // Network helper class
+    private int acks = 0;
 
     public LamportMutex(int id) {
         this.id = id;
@@ -29,6 +29,7 @@ public class LamportMutex {
         q[id] = v.getValue(id);                                                             // Update value in the request list
 
         client.broadcastMessage(Constants.REQUEST_MSG, q[id]);
+
         while (!okayCS()) myWait();
     }
 
@@ -36,6 +37,9 @@ public class LamportMutex {
         for (int j = 0; j < client.getPorts().length; j++) {
             if (isGreater(q[id], id, q[j], j)) return false;
             if (isGreater(q[id], id, v.getValue(j), j)) return false;
+        }
+        if (acks < client.getPorts().length - 1) {
+            return false;
         }
         return true;
     }
@@ -51,7 +55,10 @@ public class LamportMutex {
             if (datagramPacket != null) {
                 String message = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
                 String[] parts = message.split(MSG_SEPARATOR);
-                handleMsg(Integer.valueOf(parts[1]), datagramPacket.getPort(), parts[0]);
+                if (parts[0].equals(ACK_MSG)) {
+                    acks++;
+                }
+                handleMsg(Integer.parseInt(parts[1]), datagramPacket.getPort(), parts[0]);
             }
         } catch (Exception e) {
             e.printStackTrace();
